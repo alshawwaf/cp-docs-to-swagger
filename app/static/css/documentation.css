@@ -1,0 +1,114 @@
+/* Documentation Content Styling */
+.documentation-content {
+    color: var(--text-color);
+    line-height: 1.6;
+    font-size: 1rem;
+}
+
+.documentation-content h1, 
+.documentation-content h2, 
+.documentation-content h3, 
+.documentation-content h4 {
+    color: var(--text-color);
+    margin-top: 2rem;
+    margin-bottom: 1rem;
+    font-weight: 600;
+}
+
+.documentation-content h1 { font-size: 2rem; }
+.documentation-content h2 { font-size: 1.5rem; border-bottom: 1px solid var(--border-color); padding-bottom: 0.5rem; }
+.documentation-content h3 { font-size: 1.25rem; }
+
+.documentation-content p {
+    margin-bottom: 1rem;
+}
+
+.documentation-content ul, 
+.documentation-content ol {
+    margin-bottom: 1rem;
+    padding-left: 2rem;
+}
+
+.documentation-content li {
+    margin-bottom: 0.5rem;
+}
+
+.documentation-content table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1.5rem 0;
+    background: var(--card-bg);
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.documentation-content th, 
+.documentation-content td {
+    padding: 1rem;
+    text-align: left;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.documentation-content th {
+    background-color: var(--bg-secondary);
+    font-weight: 600;
+    color: var(--text-color);
+}
+
+.documentation-content tr:last-child td {
+    border-bottom: none;
+}
+
+.documentation-content tr:hover td {
+    background-color: var(--hover-bg);
+}
+
+.documentation-content code, 
+.documentation-content pre {
+    font-family: 'Fira Code', 'Courier New', monospace;
+    background-color: var(--bg-secondary);
+    padding: 0.2rem 0.4rem;
+    border-radius: 4px;
+    font-size: 0.9em;
+    color: var(--primary-color);
+}
+
+.documentation-content pre {
+    padding: 1rem;
+    overflow-x: auto;
+    margin: 1rem 0;
+}
+
+.documentation-content pre code {
+    background-color: transparent;
+    padding: 0;
+    color: inherit;
+}
+
+.documentation-content a {
+    color: var(--primary-color);
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.documentation-content a:hover {
+    text-decoration: underline;
+}
+
+/* Fix for legacy font tags */
+.documentation-content font {
+    font-family: inherit !important;
+    font-size: inherit !important;
+    color: inherit !important;
+}
+
+/* Specific fix for the 'Courier New' font tag used for code */
+.documentation-content font[face="Courier New"] {
+    font-family: 'Fira Code', 'Courier New', monospace !important;
+    background-color: var(--bg-secondary);
+    padding: 0.2rem 0.4rem;
+    border-radius: 4px;
+    font-size: 0.9em !important;
+    color: var(--primary-color) !important;
+}

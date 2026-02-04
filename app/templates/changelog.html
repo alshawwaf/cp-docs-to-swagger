@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Changelog - Check Point API</title>
+    <script>
+      // Apply theme INSTANTLY before any CSS loads to prevent flash
+      // Default to dark mode
+      (function() {
+        const theme = localStorage.getItem("theme");
+        if (theme === "light") {
+          document.documentElement.removeAttribute("data-theme");
+        } else {
+          document.documentElement.setAttribute("data-theme", "dark");
+        }
+      })();
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body class="custom-theme {{ api_type }}">
+    {% include 'navbar.html' %}
+
+    <div class="container">
+        <h1>Changelog</h1>
+        <p>What's new in {{ api_type|title }} API version {{ api_version }}</p>
+        
+        <div class="content-card">
+            {% if content %}
+                <div class="documentation-content">
+                    {{ content | safe }}
+                </div>
+            {% endif %}
+
+            {% if changes_data %}
+                <div class="changes-container">
+                    {% if changes_data['previous-versions'] %}
+                        {% for version in changes_data['previous-versions'] %}
+                            <div class="version-section">
+                                <h2>{{ version.name or ('Version ' ~ api_version if loop.first else 'Unknown Version') }}</h2>
+                                
+                                {% if version.sections %}
+                                    {% for section_name, section_items in version.sections.items() %}
+                                        <h3>{{ section_name }}</h3>
+                                        
+                                        <div class="commands-list">
+                                            {% for item in section_items %}
+                                                {% if item['api-command'] %}
+                                                    {% set cmd = item['api-command'] %}
+                                                    <div class="command-item">
+                                                        <div class="command-header">
+                                                            <span class="command-name">{{ cmd.name.web }}</span>
+                                                            {% if cmd.description %}
+                                                                <span class="command-desc">{{ cmd.description }}</span>
+                                                            {% endif %}
+                                                        </div>
+                                                        <div class="command-details">
+                                                            <code>{{ cmd.name.command.web }}</code>
+                                                        </div>
+                                                    </div>
+                                                {% endif %}
+                                            {% endfor %}
+                                        </div>
+                                    {% endfor %}
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+            {% endif %}
+            
+            {% if not content and not changes_data %}
+                <p>Unable to load changelog content. Please check your internet connection or try again later.</p>
+                <br>
+                <a href="https://community.checkpoint.com/t5/API-CLI-Discussion/bd-p/api-cli-discussion" target="_blank" class="btn">View on CheckMates</a>
+            {% endif %}
+        </div>
+    </div>
+
+    <script src="/static/js/theme.js"></script>
+    <style>
+        .content-card {
+            background: var(--card-bg);
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            margin-top: 2rem;
+            overflow-x: auto;
+        }
+        .documentation-content h1, .documentation-content h2, .documentation-content h3 {
+            margin-top: 1.5rem;
+            margin-bottom: 1rem;
+        }
+        .documentation-content ul {
+            padding-left: 1.5rem;
+            margin-bottom: 1rem;
+        }
+        .documentation-content li {
+            margin-bottom: 0.5rem;
+        }
+        .documentation-content table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+        }
+        .documentation-content th, .documentation-content td {
+            padding: 0.75rem;
+            border: 1px solid var(--border-color);
+            text-align: left;
+        }
+        .documentation-content th {
+            background-color: var(--bg-secondary);
+        }
+        .changes-container {
+            margin-top: 2rem;
+        }
+        .version-section {
+            margin-bottom: 3rem;
+        }
+        .version-section h2 {
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+        .version-section h3 {
+            color: var(--primary-color);
+            margin-top: 1.5rem;
+            margin-bottom: 1rem;
+        }
+        .command-item {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+        }
+        .command-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+        .command-name {
+            font-weight: 600;
+            font-size: 1.1rem;
+            color: var(--text-color);
+        }
+        .command-desc {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+        .command-details code {
+            display: block;
+            background: var(--card-bg);
+            padding: 0.75rem;
+            border-radius: 4px;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.9rem;
+            overflow-x: auto;
+            border: 1px solid var(--border-color);
+        }
+    </style>
+</body>
+</html>

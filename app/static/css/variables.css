@@ -1,0 +1,37 @@
+:root {
+  /* Core Colors - Light Mode (Default) */
+  --bg-color: #f8fafc;
+  --card-bg: #ffffff;
+  --text-color: #0f172a;
+  --accent-color: #db2777;
+  --secondary-accent: #7c3aed;
+  --gaia-accent: #1e40af;
+  
+  /* UI Elements */
+  --nav-bg: rgba(255, 255, 255, 0.95);
+  --border-color: rgba(0, 0, 0, 0.1);
+  --input-bg: #f1f5f9;
+  
+  /* Gradients */
+  --bg-gradient-1: #e0e7ff;
+  --bg-gradient-2: #fce7f3;
+}
+
+[data-theme="dark"] {
+  /* Core Colors - Dark Mode */
+  --bg-color: #0f172a;
+  --card-bg: #1e293b;
+  --text-color: #f8fafc;
+  --accent-color: #ec4899;
+  --secondary-accent: #8b5cf6;
+  --gaia-accent: #3b82f6;
+  
+  /* UI Elements */
+  --nav-bg: rgba(15, 23, 42, 0.95);
+  --border-color: rgba(255, 255, 255, 0.1);
+  --input-bg: rgba(15, 23, 42, 0.5);
+  
+  /* Gradients */
+  --bg-gradient-1: #331b3f;
+  --bg-gradient-2: #1e1b4b;
+}

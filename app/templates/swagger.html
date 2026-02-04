@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Check Point API Documentation</title>
+    <script>
+      // Apply theme INSTANTLY before any CSS loads to prevent flash
+      // Default to dark mode
+      (function() {
+        const theme = localStorage.getItem("theme");
+        if (theme === "light") {
+          document.documentElement.removeAttribute("data-theme");
+        } else {
+          document.documentElement.setAttribute("data-theme", "dark");
+        }
+      })();
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="https://unpkg.com/swagger-ui-dist@5.9.0/swagger-ui.css" id="swagger-css">
+    <link rel="stylesheet" type="text/css" href="/static/css/style.css">
+    <style>
+      html {
+        box-sizing: border-box;
+        overflow: -moz-scrollbars-vertical;
+        overflow-y: scroll;
+      }
+      *, *:before, *:after {
+        box-sizing: inherit;
+      }
+      body {
+        margin: 0;
+        padding: 0;
+      }
+      
+      /* Ensure the toggle is visible */
+      .theme-toggle-container {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 10000;
+      }
+    </style>
+  </head>
+  <body class="custom-theme {{ api_type }}">
+    {% include 'navbar.html' %}
+
+    <div id="swagger-ui"></div>
+    <script src="https://unpkg.com/swagger-ui-dist@5.9.0/swagger-ui-bundle.js"></script>
+    <script src="https://unpkg.com/swagger-ui-dist@5.9.0/swagger-ui-standalone-preset.js"></script>
+    <script>
+        // Pass server-side variable to global scope for external JS
+        window.api_url = "{{ api_url | safe }}";
+    </script>
+    <script src="/static/js/theme.js"></script>
+    <script src="/static/js/swagger-init.js"></script>
+    <script src="/static/js/custom-search.js"></script>
+  </body>
+</html>

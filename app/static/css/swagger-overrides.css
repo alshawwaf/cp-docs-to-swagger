@@ -1,0 +1,184 @@
+/* Custom Swagger Overrides when default style is disabled */
+body.custom-theme {
+  padding-top: 70px;
+}
+
+body.custom-theme .swagger-ui {
+  color: var(--text-color);
+  font-family: "Inter", sans-serif;
+}
+
+body.custom-theme .swagger-ui .topbar {
+  display: none;
+}
+
+body.custom-theme .swagger-ui .info {
+  margin: 2rem 0;
+}
+
+/* Hide everything in info except title */
+body.custom-theme .swagger-ui .info .description,
+body.custom-theme .swagger-ui .info .version,
+body.custom-theme .swagger-ui .info .base-url,
+body.custom-theme .swagger-ui .info .main > a {
+  display: none;
+}
+
+body.custom-theme .swagger-ui .info .title {
+  display: none;
+}
+
+body.custom-theme .swagger-ui .info .title span {
+  display: none; /* Hide the version badge usually inside title */
+}
+
+/* Customizing the operations to look better in dark mode */
+body.custom-theme .swagger-ui .opblock {
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
+  box-shadow: none;
+}
+
+body.custom-theme .swagger-ui .opblock .opblock-summary {
+  border-bottom: 1px solid var(--border-color);
+}
+
+body.custom-theme .swagger-ui .opblock .opblock-summary-method {
+  border-radius: 4px;
+  text-shadow: none;
+}
+
+/* Default to light mode friendly background */
+body.custom-theme .swagger-ui .opblock .opblock-section-header {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+[data-theme="dark"]
+  body.custom-theme
+  .swagger-ui
+  .opblock
+  .opblock-section-header {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+body.custom-theme .swagger-ui input[type="text"],
+body.custom-theme .swagger-ui select {
+  background-color: var(--input-bg);
+  border: 1px solid var(--border-color);
+  color: var(--text-color);
+}
+
+/* Ensure SVGs (icons) match text color */
+body.custom-theme .swagger-ui svg {
+  fill: var(--text-color);
+}
+
+/* Fix specific icon colors if they rely on stroke */
+body.custom-theme .swagger-ui .expand-operation svg,
+body.custom-theme .swagger-ui .opblock-control-arrow svg {
+  fill: var(--text-color);
+}
+
+body.custom-theme .swagger-ui .scheme-container {
+  display: none;
+}
+
+/* Filter field styling */
+body.custom-theme .swagger-ui .wrapper .filter-container {
+  padding: 20px 0;
+  margin-bottom: 20px;
+}
+
+body.custom-theme .swagger-ui .filter-container .operation-filter-input {
+  border: 1px solid var(--border-color);
+  background: var(--input-bg);
+  color: var(--text-color);
+  padding: 8px;
+  border-radius: 4px;
+}
+
+/* Ensure table headers are visible in both modes */
+body.custom-theme .swagger-ui .parameters-col_header,
+body.custom-theme .swagger-ui .response-col_status,
+body.custom-theme .swagger-ui .response-col_links,
+body.custom-theme .swagger-ui .response-col_description {
+  color: var(--text-color);
+  font-weight: 600;
+}
+
+/* Dark mode specific overrides for Swagger UI text colors */
+[data-theme="dark"]
+  body.custom-theme
+  .swagger-ui
+  .opblock
+  .opblock-summary-operation-id,
+[data-theme="dark"]
+  body.custom-theme
+  .swagger-ui
+  .opblock
+  .opblock-summary-path,
+[data-theme="dark"]
+  body.custom-theme
+  .swagger-ui
+  .opblock
+  .opblock-summary-path__deprecated,
+[data-theme="dark"]
+  body.custom-theme
+  .swagger-ui
+  .opblock
+  .opblock-summary-description,
+[data-theme="dark"]
+  body.custom-theme
+  .swagger-ui
+  .opblock-description-wrapper
+  p,
+[data-theme="dark"]
+  body.custom-theme
+  .swagger-ui
+  .opblock-external-docs-wrapper
+  p,
+[data-theme="dark"] body.custom-theme .swagger-ui .opblock-title_normal p {
+  color: var(--text-color);
+}
+
+
+[data-theme="dark"] body.custom-theme .swagger-ui .tab li {
+  color: var(--text-color);
+}
+
+
+/* Professional Category Styling - Applied directly to prevent flash */
+body.custom-theme .swagger-ui .opblock-tag {
+  color: var(--accent-color) !important;
+  font-weight: 700 !important;
+  font-size: 1.3rem !important;
+  border-bottom: 2px solid var(--accent-color) !important;
+  padding: 20px 15px !important;
+  margin: 25px 0 15px 0 !important;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+body.custom-theme .swagger-ui .opblock-tag a {
+  color: inherit !important;
+  font-family: "Inter", sans-serif !important;
+}
+
+body.custom-theme .swagger-ui .opblock-tag svg {
+  fill: var(--accent-color) !important;
+  width: 28px;
+  height: 28px;
+}
+
+/* Hover effect */
+body.custom-theme .swagger-ui .opblock-tag:hover {
+  background: linear-gradient(90deg, rgba(0, 0, 0, 0.03), transparent);
+  cursor: pointer;
+}
+
+[data-theme="dark"] body.custom-theme .swagger-ui .opblock-tag:hover {
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.05), transparent);
+}
+
+
+

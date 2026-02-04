@@ -1,0 +1,39 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv/
+venv/
+ENV/
+env/
+
+# Environment
+.env
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Flask
+instance/
+*.log
+logs/
+
+# Data
+data/
+!data/.gitkeep
+
+# Debug and temporary files
+debug_*.py
+debug_*.txt
+*_dump.json
+*.html
+!app/templates/*.html

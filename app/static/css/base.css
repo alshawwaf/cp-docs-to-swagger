@@ -1,0 +1,66 @@
+body {
+  font-family: "Inter", sans-serif;
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  margin: 0;
+  padding: 0;
+  padding-top: 70px; /* Space for fixed top-nav */
+  min-height: 100vh;
+  background-image: radial-gradient(
+      circle at top right,
+      var(--bg-gradient-1),
+      transparent 40%
+    ),
+    radial-gradient(circle at bottom left, var(--bg-gradient-2), transparent 40%);
+  transition: background-color 0.3s, color 0.3s;
+}
+
+/* Prevent flash - apply dark background immediately when theme is set */
+html[data-theme="dark"] {
+  background-color: #0f172a;
+}
+
+
+h1 {
+  font-size: 3.5rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  background: linear-gradient(
+    to right,
+    var(--accent-color),
+    var(--secondary-accent)
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  letter-spacing: -0.02em;
+  text-align: center;
+}
+
+p.subtitle {
+  font-size: 1.25rem;
+  color: #94a3b8;
+  margin-bottom: 3rem;
+  font-weight: 300;
+  text-align: center;
+}
+
+footer {
+  margin-top: 4rem;
+  text-align: center;
+  font-size: 0.8rem;
+  color: #64748b;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+

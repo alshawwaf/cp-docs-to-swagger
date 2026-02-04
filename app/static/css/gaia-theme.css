@@ -1,0 +1,19 @@
+
+/* GAiA Theme Overrides */
+body.gaia {
+    --accent-color: var(--gaia-accent);
+}
+
+/* Ensure the top bar gradient uses the new accent color */
+body.gaia .top-nav {
+    border-bottom: 1px solid rgba(59, 130, 246, 0.2);
+}
+
+/* Override Swagger UI specific elements if needed */
+body.gaia .swagger-ui .opblock.opblock-post .opblock-summary {
+    border-color: var(--gaia-accent);
+}
+
+body.gaia .swagger-ui .opblock.opblock-post .opblock-summary-method {
+    background: var(--gaia-accent);
+}

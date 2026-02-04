@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Versions - Check Point API</title>
+    <script>
+      // Apply theme INSTANTLY before any CSS loads to prevent flash
+      // Default to dark mode
+      (function() {
+        const theme = localStorage.getItem("theme");
+        if (theme === "light") {
+          document.documentElement.removeAttribute("data-theme");
+        } else {
+          document.documentElement.setAttribute("data-theme", "dark");
+        }
+      })();
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body class="custom-theme {{ api_type }}">
+    {% include 'navbar.html' %}
+
+    <div class="container">
+
+        
+
+        
+        {% if content %}
+        <div class="content-card">
+            <div class="documentation-content">
+                {{ content | safe }}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <script src="/static/js/theme.js"></script>
+    <style>
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            background: var(--bg-secondary);
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+            margin-right: 0.5rem;
+        }
+        .badge.success {
+            background: #dcfce7;
+            color: #166534;
+        }
+        body.dark-mode .badge.success {
+            background: #064e3b;
+            color: #dcfce7;
+        }
+    </style>
+</body>
+</html>

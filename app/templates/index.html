@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Check Point API Converter</title>
+    <script>
+      // Apply theme INSTANTLY before any CSS loads to prevent flash
+      // Default to dark mode
+      (function() {
+        const theme = localStorage.getItem("theme");
+        if (theme === "light") {
+          document.documentElement.removeAttribute("data-theme");
+        } else {
+          document.documentElement.setAttribute("data-theme", "dark");
+        }
+      })();
+    </script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/static/css/style.css">
+  </head>
+  <body>
+    <nav class="top-nav">
+        <div class="nav-left">
+            <div class="nav-text-logo">CP<span>Docs</span></div>
+        </div>
+        <div class="theme-toggle-container">
+            <span class="theme-toggle-label">Dark Mode</span>
+            <label class="switch">
+                <input type="checkbox" id="theme-toggle">
+                <span class="slider"></span>
+            </label>
+        </div>
+    </nav>
+
+    <div class="container">
+      <h1>Check Point API</h1>
+      <br>
+      <div class="api-selection">
+        <!-- Management API Card -->
+        <div class="api-card">
+          <div class="card-icon">
+            <img src="/static/img/management_icon.png" alt="Management API">
+          </div>
+          <h2>Management API</h2>
+          <p>Comprehensive API for managing Check Point security policies, objects, and configurations.</p>
+          
+          <div class="form-group">
+            <label for="mgmtServerUrl">Server URL:</label>
+            <input 
+              type="text" 
+              id="mgmtServerUrl" 
+              placeholder="https://203.0.113.100:443/web_api"
+              value="https://203.0.113.100:443/web_api"
+            />
+          </div>
+          
+          <div class="form-group">
+            <label for="mgmtApiVersion">API Version:</label>
+            <select id="mgmtApiVersion">
+              <option value="">Auto (Latest)</option>
+              <!-- Populated by JS -->
+            </select>
+          </div>
+
+
+          
+          <div style="display: flex; gap: 1rem;">
+            <button type="button" onclick="openAPI('management')" class="btn" style="flex: 2;">
+              View Management API Docs
+            </button>
+            <button type="button" id="sync-management" onclick="syncVersions('management')" class="btn" style="flex: 1; background: #334155;">
+              Sync
+            </button>
+          </div>
+        </div>
+
+        <!-- GAiA API Card -->
+        <div class="api-card gaia">
+          <div class="card-icon">
+            <img src="/static/img/gaia_icon.png" alt="GAiA API">
+          </div>
+          <h2>GAiA API</h2>
+          <p>System-level API for managing GAiA operating system settings, network configuration, and appliance features.</p>
+          
+          <div class="form-group">
+            <label for="gaiaServerUrl">Server URL:</label>
+            <input 
+              type="text" 
+              id="gaiaServerUrl" 
+              placeholder="https://203.0.113.100:443/gaia_api"
+              value="https://203.0.113.100:443/gaia_api"
+            />
+          </div>
+          
+          <div class="form-group">
+            <label for="gaiaApiVersion">API Version:</label>
+            <select id="gaiaApiVersion">
+              <option value="">Auto (Latest)</option>
+              <!-- Populated by JS -->
+            </select>
+          </div>
+
+
+          
+          <div style="display: flex; gap: 1rem;">
+            <button type="button" onclick="openAPI('gaia')" class="btn gaia" style="flex: 2;">
+              View GAiA API Docs
+            </button>
+            <button type="button" id="sync-gaia" onclick="syncVersions('gaia')" class="btn gaia" style="flex: 1; background: #334155;">
+              Sync
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sync Modal -->
+    <div id="syncModal" class="sync-modal">
+      <div class="sync-modal-content">
+        <div class="sync-modal-header">
+          <h2 id="syncModalTitle">Syncing API Versions</h2>
+          <button class="sync-modal-close" onclick="closeSyncModal()">&times;</button>
+        </div>
+        <div class="sync-modal-body">
+          <div id="syncProgress" class="sync-progress">
+            <div class="sync-spinner"></div>
+            <p id="syncStatus">Initializing sync...</p>
+          </div>
+          <div id="syncResults" class="sync-results" style="display: none;">
+            <div id="syncResultContent"></div>
+          </div>
+        </div>
+        <div class="sync-modal-footer">
+          <button id="syncCloseBtn" class="btn" onclick="closeSyncModal()" style="display: none;">Close</button>
+        </div>
+      </div>
+    </div>
+
+    <script src="/static/js/theme.js"></script>
+    <script src="/static/js/index.js"></script>
+  </body>
+</html>

@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tips & Best Practices - Check Point API</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body class="custom-theme {{ api_type }}">
+    {% include 'navbar.html' %}
+
+    <div class="container">
+
+        
+        <div class="content-card">
+            {% if content %}
+                <div class="documentation-content">
+                    {{ content | safe }}
+                </div>
+            {% else %}
+                <p>Unable to load content. Please check your internet connection.</p>
+                <br>
+                <a href="https://sc1.checkpoint.com/documents/latest/APIs/index.html#web-manual-best-practices" target="_blank" class="btn">Read Official Best Practices</a>
+            {% endif %}
+        </div>
+    </div>
+
+    <script src="/static/js/theme.js"></script>
+    <style>
+        .content-card {
+            background: var(--card-bg);
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            margin-top: 2rem;
+            overflow-x: auto;
+        }
+        .documentation-content h1, .documentation-content h2, .documentation-content h3 {
+            margin-top: 1.5rem;
+            margin-bottom: 1rem;
+        }
+        .documentation-content ul {
+            padding-left: 1.5rem;
+            margin-bottom: 1rem;
+        }
+        .documentation-content li {
+            margin-bottom: 0.5rem;
+        }
+        .documentation-content table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+        }
+        .documentation-content th, .documentation-content td {
+            padding: 0.75rem;
+            border: 1px solid var(--border-color);
+            text-align: left;
+        }
+        .documentation-content th {
+            background-color: var(--bg-secondary);
+        }
+    </style>
+</body>
+</html>
