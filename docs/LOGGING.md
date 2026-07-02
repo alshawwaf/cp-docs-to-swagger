@@ -23,18 +23,26 @@ You can set the log level using the `LOG_LEVEL` environment variable. Available 
 ## Usage
 
 ### Default (INFO level)
-```powershell
-python app.py
+```bash
+python run.py
 ```
 
 ### Debug mode (shows all headers and detailed information)
-```powershell
-$env:LOG_LEVEL="DEBUG"; python app.py
+```bash
+# Linux/Mac
+LOG_LEVEL=DEBUG python run.py
+
+# Windows PowerShell
+$env:LOG_LEVEL="DEBUG"; python run.py
 ```
 
 ### Production mode (errors only)
-```powershell
-$env:LOG_LEVEL="ERROR"; python app.py
+```bash
+# Linux/Mac
+LOG_LEVEL=ERROR python run.py
+
+# Windows PowerShell
+$env:LOG_LEVEL="ERROR"; python run.py
 ```
 
 ## Log Format

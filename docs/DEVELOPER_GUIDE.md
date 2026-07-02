@@ -16,15 +16,16 @@
 ## Overview
 
 ### Purpose
-This tool converts Check Point Management API documentation from their proprietary JSON format into standard OpenAPI 3.0 specification, enabling better API exploration through Swagger UI.
+This tool converts Check Point **Management** and **GAiA** API documentation from their proprietary JSON format into a standard OpenAPI 3.0 specification, enabling better API exploration through Swagger UI.
 
 ### Key Features
-- Fetches API documentation from Check Point's official documentation site
+- Fetches API documentation from Check Point's official documentation site (`sc1.checkpoint.com`)
+- Supports both the Management API and the GAiA API
 - Merges data from multiple JSON sources (APIs, examples, content hierarchy)
-- Generates compliant OpenAPI 3.0 specification
-- Provides interactive Swagger UI interface
-- Supports multiple API versions (v1 through v2.0.1)
-- Configurable server URL and version selection
+- Generates a compliant OpenAPI 3.0 specification
+- Provides an interactive Swagger UI interface with a built-in `/proxy` passthrough for "Try it out"
+- Discovers available versions dynamically and caches processed specs locally under `data/processed/`
+- Configurable target server URL and version selection
 
 ---
 
@@ -52,7 +53,8 @@ This tool converts Check Point Management API documentation from their proprieta
 └─────────────────────────────────────────────────────────────┘
                            ↓
 ┌─────────────────────────────────────────────────────────────┐
-│                      converter.py                            │
+│                  app/converter/ (package)                    │
+│   generator.py · schema.py · hierarchy.py · fetcher.py       │
 │                                                              │
 │  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐     │
 │  │ process_cmd()│→ │ merge_data() │→ │ generate()   │     │
@@ -238,17 +240,30 @@ This is how the `domain` field was discovered and added - it appears in response
 
 ## Core Components
 
-### converter.py
+### app/converter/ (package)
 
-#### Configuration Variables
+The conversion logic lives in the `app/converter/` package, not a single `converter.py` file. Its public API is re-exported from `app/converter/__init__.py`. Key modules:
+
+| Module | Responsibility |
+|--------|----------------|
+| `config.py` | `API_CONFIGS` (Management + GAiA endpoints), server URLs, `VERIFY_SSL`, `SHOW_UNDOCUMENTED` |
+| `fetcher.py` | `get_latest_api_version()`, `fetch_data()`, `fetch_documentation_page()`, `fetch_changes_json()` |
+| `generator.py` | `convert_checkpoint_to_openapi()` — the main orchestration function |
+| `schema.py` | `build_schema_from_object()`, `_process_field()` |
+| `hierarchy.py` | `build_hierarchy_map()` |
+
+#### Configuration Variables (from `config.py`)
 ```python
-CHECKPOINT_SERVER_URL    # Target server for API calls
-CHECKPOINT_API_VERSION   # API version to document (v1 - v2.0.1)
+CHECKPOINT_SERVER_URL    # Target Management server for "Try it out" calls
+GAIA_SERVER_URL          # Target GAiA server for "Try it out" calls
+CHECKPOINT_API_VERSION   # API version to document (None -> dynamic discovery)
+VERIFY_SSL               # Verify upstream TLS certs (default false)
+SHOW_UNDOCUMENTED        # Include undocumented API calls (default false)
 ```
 
 #### Key Functions
 
-##### `fetch_data()`
+##### `fetch_data()` (fetcher.py)
 **Purpose**: Downloads all required JSON files from Check Point documentation
 
 **Returns**: Tuple of (apis_data, examples_data, static_data, content_data)
@@ -337,45 +352,40 @@ ordered_tags = [
 7. Return complete OpenAPI spec
 ```
 
-### app.py
+### app/routes.py
+
+Routes are defined in `app/routes.py` (the Flask app itself is created in `app/__init__.py`, which also configures logging and launches the startup sync). There is no `app.py`.
 
 #### Routes
 
 ##### `GET /`
-Returns the landing page (index.html)
+Returns the landing page (`index.html`).
 
 ##### `GET /openapi.json`
-```python
-@app.route('/openapi.json')
-def get_openapi_spec():
-    spec = convert_checkpoint_to_openapi()
-    return jsonify(spec)
-```
-- Calls converter
-- Returns JSON spec
-- Cached by Swagger UI
+Resolves the requested `api_type` / `api_version`, loads a pre-processed spec from `data/processed/` when available (otherwise converts on the fly), rewrites the `servers` block to point at the `/proxy` endpoint, and returns the JSON spec. Accepts `api_type`, `api_version`, and `server_url` query parameters.
 
 ##### `GET /docs`
-Swagger UI interface (handled by flask-swagger-ui blueprint)
+Renders the Swagger UI page from the custom `swagger.html` template (not a `flask-swagger-ui` blueprint) with a dynamically built `api_url`.
 
-##### `ANY /proxy/<path:endpoint>`
-A transparent proxy that forwards requests to the Check Point Management Server.
+##### `GET /docs/versions`, `GET /docs/changelog`, `GET /docs/tips`
+Render the Versions, Changelog, and Tips & Best Practices pages, pulling the corresponding documentation pages from Check Point.
+
+##### `ANY /proxy/<encoded_server>/<path:endpoint>`
+A transparent proxy that forwards requests to the Check Point server. The target server is URL-safe Base64-encoded into the path.
 
 **Why is this needed?**
 1.  **CORS**: Browsers block requests to the Check Point server because it doesn't send CORS headers. The proxy adds them.
 2.  **SSL**: The Check Point server often uses self-signed certificates. The proxy handles the insecure connection so the browser doesn't block it.
 3.  **Session Handling**: Intercepts the login response to extract the session ID (from header or body) and ensures it's passed to the frontend.
 
-#### Configuration
-```python
-SWAGGER_URL = '/docs'
-API_URL = 'http://localhost:5000/openapi.json'  # Full URL to avoid relative path issues
+##### `GET /proxy_example`
+Lazily fetches an external request/response example JSON referenced by a spec.
 
-config = {
-    'docExpansion': 'none',  # Collapse all sections by default
-    'filter': True            # Enable search/filter
-}
-```
+##### `GET /api/versions`, `POST /api/sync`
+`/api/versions` lists online versions and their local download/processed status. `/api/sync` triggers a background download-and-convert pass for an API type (the "Sync" button on the home page).
+
+#### Server / Swagger UI configuration
+The Flask server listens on **port 9482** (see `run.py`). Swagger UI is initialized client-side in `swagger.html` / `app/static/js/swagger-init.js`, with the spec URL pointing at `/openapi.json` and options such as collapsed sections and filtering enabled.
 
 ---
 
@@ -486,46 +496,55 @@ Swagger UI natively expects API keys in headers, but it can't automatically extr
 ### Project Layout
 
 ```
-antigravity-projects/
-├── run.py                 # Application entry point
+cp-docs-to-swagger/
+├── run.py                 # Application entry point (Flask, port 9482)
 ├── app/                   # Application package
-│   ├── __init__.py        # App initialization and logging
+│   ├── __init__.py        # App init, logging, startup sync
 │   ├── routes.py          # Route definitions
 │   ├── converter/         # Conversion logic package
-│   │   ├── __init__.py
+│   │   ├── __init__.py    # Re-exports the public converter API
+│   │   ├── config.py      # API endpoints, server URLs, feature flags
+│   │   ├── fetcher.py     # Data fetching + version discovery
 │   │   ├── generator.py   # Core OpenAPI generation
-│   │   └── utils.py       # Helper functions
-│   ├── data_manager.py    # Data fetching and caching logic
-│   ├── templates/         # HTML templates (swagger.html, index.html)
+│   │   ├── hierarchy.py   # Tag hierarchy from content.json
+│   │   └── schema.py      # Object -> OpenAPI schema conversion
+│   ├── data_manager.py    # Version discovery, download, and caching
+│   ├── templates/         # HTML templates (index, swagger, versions,
+│   │                      #   changelog, tips, navbar)
 │   └── static/            # Static assets
 │       ├── css/           # Custom styles
-│       └── js/            # Custom scripts (custom-search.js)
+│       ├── js/            # Custom scripts (custom-search.js, ...)
+│       ├── img/           # Images and icons
+│       └── images/        # Additional images
 ├── data/                  # Data storage (gitignored)
 │   ├── raw/               # Raw JSON files from Check Point
 │   └── processed/         # Generated OpenAPI specs
 ├── docs/                  # Documentation
 │   ├── DEVELOPER_GUIDE.md
 │   └── LOGGING.md
-├── scripts/               # Utility scripts
+├── scripts/               # Utility / diagnostic scripts
 │   └── process_all_versions.py
+├── tests/                 # Verification scripts
 ├── requirements.txt       # Python dependencies
-├── .env.example          # Configuration template
-├── .gitignore            # Git ignore patterns
-├── Dockerfile            # Docker container definition
-├── LICENSE               # License file
-├── README.md             # User documentation
-└── tests/                # Verification scripts
+├── .env.example           # Configuration template
+├── .gitignore             # Git ignore patterns
+├── Dockerfile             # Docker container definition
+├── docker-compose.yml     # Compose service (publishes port 9482)
+├── CONTRIBUTING.md        # Contribution guide
+├── LICENSE                # License file (MIT)
+└── README.md              # User documentation
 ```
 
 ### File Responsibilities
 
 | File | Purpose | Key Functions |
 |------|---------|---------------|
-| `run.py` | Entry point | Starts the Flask server |
-| `app/__init__.py` | App factory | Configures logging, creates Flask app |
-| `app/routes.py` | Routes | Defines endpoints (`/`, `/docs`, `/proxy`) |
-| `app/converter.py` | Logic | `convert_checkpoint_to_openapi()` |
-| `app/templates/` | UI | `index.html`, `swagger.html` |
+| `run.py` | Entry point | Starts the Flask server on port 9482 |
+| `app/__init__.py` | App init | Configures logging, creates Flask app, starts background sync |
+| `app/routes.py` | Routes | Defines endpoints (`/`, `/openapi.json`, `/docs`, `/proxy`, `/api/*`) |
+| `app/converter/generator.py` | Logic | `convert_checkpoint_to_openapi()` |
+| `app/data_manager.py` | Data | Version discovery, download, local spec cache |
+| `app/templates/` | UI | `index.html`, `swagger.html`, `versions.html`, ... |
 
 ---
 
@@ -545,10 +564,12 @@ CHECKPOINT_API_VERSION=v2.0.1
 
 ### Supported API Versions
 
-The tool can document any of the following Check Point API versions:
-- v1, v1.1, v1.2, v1.3, v1.4, v1.5
-- v1.6, v1.6.1, v1.7, v1.7.1
-- v1.8, v1.9, v2.0, v2.0.1
+Available versions are discovered dynamically from Check Point's `versions.js`, so the exact list tracks whatever Check Point publishes. Typical ranges:
+
+- **Management API**: v1, v1.1, v1.2, v1.3, v1.4, v1.5, v1.6, v1.6.1, v1.7, v1.7.1, v1.8, v1.8.1, v1.9, v1.9.1, v2.0, v2.0.1
+- **GAiA API**: v1, v1.1, v1.2, v1.3, v1.4, v1.5, v1.6, v1.7, v1.8
+
+If discovery fails, `config.py` falls back to `v2.0.1` (Management) / `v1.8` (GAiA).
 
 **Version Selection Impact:**
 - Changes the URL path for fetching documentation
@@ -557,13 +578,15 @@ The tool can document any of the following Check Point API versions:
 
 ### Configuration Loading
 
-```python
-# In converter.py
-DEFAULT_SERVER_URL = "https://<mgmt-server>:<port>/web_api"
-DEFAULT_API_VERSION = "v2.0.1"
+Configuration lives in `app/converter/config.py`. Server URLs and the version are read from the environment, and the API version defaults to `None` to trigger dynamic discovery of the latest version:
 
-CHECKPOINT_SERVER_URL = os.getenv("CHECKPOINT_SERVER_URL", DEFAULT_SERVER_URL)
-CHECKPOINT_API_VERSION = os.getenv("CHECKPOINT_API_VERSION", DEFAULT_API_VERSION)
+```python
+# In app/converter/config.py
+CHECKPOINT_SERVER_URL = os.getenv("CHECKPOINT_SERVER_URL", API_CONFIGS['management']['default_server'])
+GAIA_SERVER_URL       = os.getenv("GAIA_SERVER_URL", API_CONFIGS['gaia']['default_server'])
+VERIFY_SSL            = os.getenv("VERIFY_SSL", "false").lower() == "true"
+CHECKPOINT_API_VERSION = os.getenv("CHECKPOINT_API_VERSION", None)  # None -> latest
+SHOW_UNDOCUMENTED     = os.getenv("SHOW_UNDOCUMENTED", "false").lower() == "true"
 ```
 
 ---
@@ -588,7 +611,7 @@ return apis_data, examples_data, static_data, content_data, new_data
 To handle special field types:
 
 ```python
-# In _process_field()
+# In _process_field() (app/converter/schema.py)
 if field_name == 'special_field':
     # Custom handling
     prop_schema = {
@@ -600,7 +623,7 @@ if field_name == 'special_field':
 ### Adding Custom Endpoints
 
 ```python
-# In app.py
+# In app/routes.py
 @app.route('/custom-endpoint')
 def custom_endpoint():
     # Your logic here
@@ -725,7 +748,7 @@ with open('debug_schema.json', 'w') as f:
 3. **Test Individual Components**:
 ```bash
 # Test data fetching only
-python -c "from converter import fetch_data; data = fetch_data(); print(f'Commands: {len(data[0][\"commands\"])}')"
+python -c "from app.converter.fetcher import fetch_data; data = fetch_data(); print(data.keys())"
 ```
 
 4. **Check OpenAPI Spec Validity**:
@@ -737,13 +760,13 @@ Use online validators like https://apitools.dev/swagger-parser/online/
 
 ### Making Changes
 
-1. **Modify Code**: Edit `converter.py` or `app.py`
+1. **Modify Code**: Edit the relevant module under `app/converter/` or `app/routes.py`
 2. **Test Locally**:
    ```bash
    python tests/verify_holistic.py  # Test conversion
-   python app.py                     # Start server
+   python run.py                     # Start server
    ```
-3. **Verify in Browser**: Check http://localhost:5000/docs
+3. **Verify in Browser**: Check http://localhost:9482/docs
 4. **Run All Tests**:
    ```bash
    python tests/verify_config.py
@@ -774,12 +797,12 @@ assert len(examples) > 0
 ### Version Control
 
 **Important Files to Track**:
-- `app.py`
-- `converter.py`
+- `run.py`
+- `app/` (including `routes.py`, `__init__.py`, and the `converter/` package)
 - `requirements.txt`
-- `templates/index.html`
+- `app/templates/`
 - `README.md`
-- `DEVELOPER_GUIDE.md`
+- `docs/DEVELOPER_GUIDE.md`
 - `.env.example`
 
 **Files to Ignore** (in `.gitignore`):
@@ -879,16 +902,16 @@ Key OpenAPI concepts used in this tool:
 pandoc DEVELOPER_GUIDE.md -o DEVELOPER_GUIDE.docx
 
 # View OpenAPI spec
-curl http://localhost:5000/openapi.json | jq .
+curl http://localhost:9482/openapi.json | jq .
 
 # Count total API commands
-curl http://localhost:5000/openapi.json | jq '.paths | length'
+curl http://localhost:9482/openapi.json | jq '.paths | length'
 
 # List all tags
-curl http://localhost:5000/openapi.json | jq '.tags[].name'
+curl http://localhost:9482/openapi.json | jq '.tags[].name'
 
 # Pretty-print converter output
-python -c "from converter import convert_checkpoint_to_openapi; import json; print(json.dumps(convert_checkpoint_to_openapi(), indent=2))" > spec.json
+python -c "from app.converter import convert_checkpoint_to_openapi; import json; print(json.dumps(convert_checkpoint_to_openapi(), indent=2))" > spec.json
 ```
 
 ---
@@ -899,5 +922,5 @@ This tool bridges the gap between Check Point's proprietary documentation format
 
 For questions or contributions, refer to the project README.md for contact information.
 
-**Last Updated**: 2025-12-01
-**Version**: 1.0
+**Last Updated**: 2026-07-02
+**Version**: 1.1
