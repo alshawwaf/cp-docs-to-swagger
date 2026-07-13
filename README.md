@@ -1,193 +1,143 @@
-# Check Point API Documentation Viewer
+# Docs to Swagger
 
-A modern web application for viewing and interacting with Check Point Management and GAiA API documentation through an enhanced Swagger UI interface.
+Convert Check Point **Management** and **GAiA** API documentation into a browsable, interactive OpenAPI 3.0 / Swagger UI.
+
+Part of the [Dev Hub](https://github.com/alshawwaf/dev-hub) ecosystem — deploy the whole suite with [ubuntu-dokploy-ai](https://github.com/alshawwaf/ubuntu-dokploy-ai).
+
+## Overview
+
+Check Point publishes its Management and GAiA API references as a proprietary set of JSON files rather than a machine-readable API spec. This app fetches those files from Check Point's public documentation site, converts them into a standard OpenAPI 3.0 specification, caches the result locally, and serves it through a customized Swagger UI. The result is a searchable, versioned reference where every command can be tried against a live server through a built-in proxy.
+
+A small Flask backend handles fetching, conversion, caching, and the "Try it out" proxy; the frontend is Swagger UI with custom search, theming, and navigation on top.
 
 ## Features
 
-### Core Functionality
-- **Offline Capability**: Automatically downloads and caches API specifications locally
-- **Multi-API Support**: View both Management and GAiA APIs in a unified interface
-- **Version Management**: Browse and sync multiple API versions
-- **Dark Mode**: Full dark mode support with instant theme switching (no flash)
+- **Two APIs, one UI** — browse the Management API (`/web_api`) and the GAiA API (`/gaia_api`) from a single landing page.
+- **Automatic conversion** — Check Point's `apis.json` / `examples.json` / `content.json` are merged and converted to OpenAPI 3.0, with request/response schemas, examples, and a tag hierarchy built from the docs' own chapter structure.
+- **Version management** — versions are discovered dynamically from Check Point; sync and cache any version, or pin one via configuration.
+- **Offline after first sync** — processed specs are cached under `data/processed/` and served without re-fetching. A background sync warms the cache on startup.
+- **Interactive "Try it out"** — the generated spec points at a local `/proxy` passthrough that forwards requests to your Check Point server, handling CORS, self-signed certificates, and the `X-chkp-sid` session header automatically.
+- **Enhanced search** — client-side indexing for instant results, ranking that favors exact and operation-name matches, and deep-linking that expands nested tags on selection.
+- **Docs pages** — Versions, Changelog, and Tips & Best Practices are pulled straight from Check Point for the selected API/version.
+- **Dark mode** — flash-free theme switching (dark by default).
 
-### Enhanced Search
-- **Instant Results**: Client-side indexing for zero-latency searches
-- **Smart Ranking**: Prioritizes exact matches and operation names
-- **Deep Navigation**: Automatically expands nested tags and operations upon selection
-- **Professional UI**: Method badges (GET, POST, etc.) and clear hierarchy
+## Screenshots
 
-### Documentation Pages
-- **API Documentation**: Interactive Swagger UI for API exploration
-- **Changelog**: View what's new in each API version
-- **Versions**: Browse available API versions and their status
-- **Tips & Best Practices**: Check Point's tips/best-practices page for the selected API
-- **Responsive Design**: Optimized for various screen sizes
+<!-- Add screenshots of the landing page and Swagger UI here. -->
 
-### Performance Optimizations
-- Lazy loading for large specifications
-- Optimized syntax highlighting
-- Correctly nested tags (e.g., "Network Objects / Host")
-- Local caching to reduce network requests
+## Quick start
 
-## Installation
-
-### Prerequisites
-- Python 3.8 or higher
-- pip package manager
-
-### Setup
-
-1. Clone the repository:
-
-   ```bash
-   git clone https://github.com/alshawwaf/cp-docs-to-swagger.git
-   cd cp-docs-to-swagger
-   ```
-
-2. Create a virtual environment (recommended):
-
-   ```bash
-   python -m venv .venv
-   
-   # Windows
-   .venv\Scripts\activate
-   
-   # Linux/Mac
-   source .venv/bin/activate
-   ```
-
-3. Install dependencies:
-
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-## Usage
-
-### Starting the Application
-
-1. Start the Flask server:
-
-   ```bash
-   python run.py
-   ```
-
-2. Open your browser and navigate to:
-
-   ```
-   http://localhost:9482
-   ```
-
-### First Run
-
-- The application will automatically attempt to download the latest API versions
-- Select your desired API type (Management or GAiA) from the landing page
-- Choose the API version you want to explore
-- The app will fetch and cache the documentation locally
-
-### Syncing API Versions
-
-Use the "Sync" button on the home page to download and process all available versions for an API type. The application also kicks off a background sync of Management and GAiA versions on startup, so the cache warms up automatically on first run.
-
-### Running with Docker
-
-A `Dockerfile` and `docker-compose.yml` are included. The container runs `python run.py` and publishes port `9482`; the `data/` and `logs/` directories are mounted as volumes so the cache and logs persist across restarts.
+### Docker (recommended)
 
 ```bash
-# Optional: create a .env from the template first (see Configuration)
+git clone https://github.com/alshawwaf/cp-docs-to-swagger.git
+cd cp-docs-to-swagger
+
+# Optional: seed configuration (see Configuration below)
 cp .env.example .env
 
 docker compose up -d
 ```
 
-Then browse to `http://localhost:9482`.
+The container runs `python run.py` and publishes port **9482**; `data/` and `logs/` are mounted as volumes so the cache and logs persist across restarts. Then open <http://localhost:9482>.
 
-### Deployment
+### Local development
 
-In the lab, this app is deployed as the **Docs-to-Swagger** service (`swagger.<domain>`) on the shared bare-metal Ubuntu + Dokploy host (Traefik ingress + Let's Encrypt), and is surfaced from the AI DevHub launcher. Dokploy builds the included `docker-compose.yml` directly, so no application changes are needed to deploy.
+```bash
+python -m venv .venv
+source .venv/bin/activate        # Windows: .venv\Scripts\activate
+pip install -r requirements.txt
+python run.py
+```
 
-## Architecture
+Browse to <http://localhost:9482>. On first run the app kicks off a background sync of the Management and GAiA versions, so the cache warms up on its own. You can also trigger a full download/convert for an API type with the **Sync** button on the landing page.
 
-### Backend
-- **Framework**: Flask (Python)
-- **Data Management**: Automated fetching, caching, and version management
-- **Conversion Engine**: Converts Check Point's proprietary JSON format to OpenAPI 3.0
+## Deployment
 
-### Frontend
-- **UI Framework**: Swagger UI 5.9.0
-- **Styling**: Custom CSS with CSS variables for theming
-- **Scripting**: Vanilla JavaScript for search, theme management, and interactions
+In the Dev Hub ecosystem this app is deployed automatically by [ubuntu-dokploy-ai](https://github.com/alshawwaf/ubuntu-dokploy-ai) as the **Docs to Swagger** service at `swagger.<domain>` (Docker + Dokploy + Traefik, TLS via Let's Encrypt or a Cloudflare Tunnel), and is embedded in the Dev Hub launcher. Dokploy builds the included `docker-compose.yml` directly, so no application changes are needed to deploy.
 
-### Data Flow
-1. Raw JSON documentation fetched from Check Point's official sources
-2. Converted to standard OpenAPI 3.0 format
-3. Cached locally for offline access
-4. Served through customized Swagger UI
+## Configuration
 
-## Project Structure
+Copy `.env.example` to `.env` and adjust as needed. All settings are optional — the app runs with sensible defaults.
+
+| Variable | Default | Description |
+| --- | --- | --- |
+| `CHECKPOINT_SERVER_URL` | Management placeholder | Target Management server used by the Swagger **Try it out** proxy (e.g. `https://<mgmt-ip>/web_api`). |
+| `GAIA_SERVER_URL` | GAiA placeholder | Target GAiA server used by **Try it out** (e.g. `https://<gaia-ip>/gaia_api`). |
+| `CHECKPOINT_API_VERSION` | _empty_ | Pin a specific API version. Leave empty to auto-discover the latest. |
+| `VERIFY_SSL` | `false` | Verify TLS certificates when calling Check Point servers and the docs site. `false` allows self-signed certs. |
+| `SHOW_UNDOCUMENTED` | `false` | Include commands flagged `"documented": false` in the generated spec. |
+| `LOG_LEVEL` | `INFO` | Python logging level (`DEBUG`, `INFO`, `WARNING`, `ERROR`). |
+
+> [!NOTE]
+> `CHECKPOINT_SERVER_URL` and `GAIA_SERVER_URL` only affect the interactive **Try it out** feature — they are the servers your API calls are proxied to. The API *documentation* itself is always fetched from Check Point's public documentation servers, regardless of these values.
+
+## How it works
+
+1. **Discover** — available versions are read from Check Point's `versions.js`; the latest is resolved from `default_api_version`.
+2. **Download** — per version, the raw `apis.json`, `examples.json`, `static_content/apis.json`, and `content.json` are fetched from `sc1.checkpoint.com` into `data/raw/`.
+3. **Convert** — `app/converter/` turns the raw data into OpenAPI 3.0: paths and operations from `commands`, request/response schemas from object definitions, examples parsed from the web/CLI bodies (including CLI-string-to-JSON parsing for GAiA), and a tag hierarchy plus Redoc `x-tag-groups` built from the docs' chapter tree.
+4. **Cache** — the generated spec is written to `data/processed/<api_type>/<version>/openapi.json`.
+5. **Serve** — Swagger UI loads `/openapi.json`, whose `servers` block is rewritten to a local `/proxy/<base64-server>` passthrough so "Try it out" works without CORS or SSL headaches.
+
+### Key routes
+
+| Route | Purpose |
+| --- | --- |
+| `/` | Landing page (API selection, version, sync). |
+| `/docs` | Swagger UI for the selected API/version. |
+| `/docs/versions`, `/docs/changelog`, `/docs/tips` | Docs pages pulled from Check Point. |
+| `/openapi.json` | Generated OpenAPI spec (from cache or on the fly). |
+| `/api/versions` | JSON list of versions with download/processed status. |
+| `/api/sync` | `POST` — download + convert all versions for an API type in the background. |
+| `/proxy/<server>/<endpoint>` | Passthrough used by "Try it out". |
+
+## Tech stack
+
+- **Backend**: Python 3.9 · Flask · `requests` · `flask-swagger-ui`
+- **Frontend**: Swagger UI 5.9.0 · vanilla JavaScript · custom CSS with CSS-variable theming
+- **Packaging**: Docker (`python:3.9-slim`) + docker compose
+
+## Project structure
 
 ```
 cp-docs-to-swagger/
 ├── app/
-│   ├── converter/           # OpenAPI conversion package
-│   │   ├── __init__.py      # Re-exports the public converter API
-│   │   ├── config.py        # API endpoints, server URLs, feature flags
-│   │   ├── fetcher.py       # Data fetching + version discovery from Check Point
-│   │   ├── generator.py     # OpenAPI 3.0 spec generation (convert_checkpoint_to_openapi)
-│   │   ├── hierarchy.py     # Builds tag hierarchy from content.json
-│   │   └── schema.py        # Builds OpenAPI schemas from Check Point object defs
-│   ├── static/
-│   │   ├── css/             # Stylesheets (variables.css, layout.css,
-│   │   │                    #   swagger-overrides.css, search.css, modal.css, ...)
-│   │   ├── js/              # JavaScript (theme.js, custom-search.js,
-│   │   │                    #   swagger-init.js, index.js)
-│   │   ├── img/             # Images and icons
-│   │   └── images/          # Additional images
-│   ├── templates/           # HTML templates
-│   │   ├── index.html       # Landing page
-│   │   ├── swagger.html     # API documentation viewer
-│   │   ├── versions.html    # Version browser
-│   │   ├── changelog.html   # Changelog viewer
-│   │   ├── tips.html        # Tips & Best Practices page
-│   │   └── navbar.html      # Navigation component
-│   ├── __init__.py          # Flask app init, logging, startup sync
-│   ├── routes.py            # Application routes (incl. the /proxy passthrough)
-│   └── data_manager.py      # Version discovery, download, and local caching
-├── data/                    # Local cache (gitignored)
-│   ├── raw/                 # Raw JSON from Check Point
-│   └── processed/           # Generated OpenAPI specs
-├── docs/                    # Documentation
-│   ├── DEVELOPER_GUIDE.md
-│   └── LOGGING.md
-├── logs/                    # Application logs (gitignored)
-├── scripts/                 # Utility / diagnostic scripts
-│   └── process_all_versions.py
-├── tests/                   # Verification scripts
-├── run.py                   # Application entry point (Flask, port 9482)
-├── requirements.txt         # Python dependencies (flask, requests, flask-swagger-ui)
-├── Dockerfile               # Container image definition
-├── docker-compose.yml       # Compose service (publishes port 9482)
-├── .env.example             # Environment variable template
-├── .gitignore
-├── CONTRIBUTING.md
-├── LICENSE
-└── README.md
+│   ├── converter/        # OpenAPI conversion package
+│   │   ├── config.py     #   API endpoints, server URLs, feature flags
+│   │   ├── fetcher.py    #   data fetching + version discovery
+│   │   ├── generator.py  #   OpenAPI 3.0 generation (convert_checkpoint_to_openapi)
+│   │   ├── hierarchy.py  #   tag hierarchy from content.json
+│   │   └── schema.py     #   OpenAPI schemas from Check Point object defs
+│   ├── static/           # CSS, JS (theme, search, swagger init), images
+│   ├── templates/        # index, swagger, versions, changelog, tips, navbar
+│   ├── __init__.py       # Flask app init, logging, startup sync
+│   ├── routes.py         # routes incl. the /proxy passthrough
+│   └── data_manager.py   # version discovery, download, local caching
+├── data/                 # local cache (gitignored): raw/ + processed/
+├── docs/                 # DEVELOPER_GUIDE.md, LOGGING.md
+├── scripts/              # diagnostic / batch-processing utilities
+├── tests/                # verification scripts
+├── run.py                # entry point (Flask, port 9482)
+├── requirements.txt
+├── Dockerfile
+├── docker-compose.yml
+└── .env.example
 ```
 
-## Configuration
+## Development
 
-See `.env.example` for available configuration options. Key settings include:
-
-- Server URLs for Management and GAiA APIs (used for the "Try it out" interactive feature)
-- API version preferences
-- Logging levels
-
-> [!NOTE]
-> The `CHECKPOINT_SERVER_URL` and `GAIA_SERVER_URL` variables are only used for the interactive "Try it out" feature in the Swagger UI. The application automatically fetches the latest API documentation definitions from Check Point's official online servers.
-
+- Entry point is `run.py`, which serves the Flask app on `0.0.0.0:9482`.
+- Conversion logic lives entirely in `app/converter/` — start with `generator.py`.
+- `scripts/process_all_versions.py` batch-downloads and converts every version.
+- The `tests/` and `scripts/` directories hold standalone verification/diagnostic scripts (run them directly with Python).
+- See [CONTRIBUTING.md](CONTRIBUTING.md) before opening a PR.
 
 ## Documentation
 
-For detailed developer documentation, see:
-- [DEVELOPER_GUIDE.md](docs/DEVELOPER_GUIDE.md) - Architecture and development guide
-- [LOGGING.md](docs/LOGGING.md) - Logging configuration
+- [DEVELOPER_GUIDE.md](docs/DEVELOPER_GUIDE.md) — architecture and conversion internals.
+- [LOGGING.md](docs/LOGGING.md) — logging configuration.
+
+## License
+
+Released under the [MIT License](LICENSE).
