@@ -1,6 +1,9 @@
 services:
   app:
-    build: .
+    image: ghcr.io/alshawwaf/cp-docs-to-swagger:latest
+    pull_policy: always
+    # build disabled: the image is prebuilt + published by .github/workflows/publish-image.yml; uncomment to build locally.
+    # build: .
     ports:
       - "9482:9482"
     volumes:
